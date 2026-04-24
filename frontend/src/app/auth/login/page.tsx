@@ -30,7 +30,7 @@ setLoading(true);
 
 try {
   // 🔥 FIX: call API directly (no broken wrapper logic)
-  const data = await api.post('/auth/login', {
+  const res = await api.post('/auth/login', {
     email: email.trim(),
     password
   });

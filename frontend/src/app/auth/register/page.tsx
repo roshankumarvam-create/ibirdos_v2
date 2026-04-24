@@ -44,8 +44,9 @@ if (form.password.length < 6) {
 setLoading(true);
 
 try {
-  // ✅ FIXED: API already returns clean data
-  const data = await api.post('/auth/register', form);
+  // ✅ FIXED: get response properly
+  const res = await api.post('/auth/register', form);
+  const data = res.data;
 
   console.log('REGISTER RESPONSE:', data);
 
@@ -62,9 +63,11 @@ try {
   }
 
   // 🔥 STRIPE
-  const stripeData = await api.post('/stripe/checkout', {
+  const stripeRes = await api.post('/stripe/checkout', {
     plan: form.plan_tier
   });
+
+  const stripeData = stripeRes.data;
 
   if (!stripeData?.url && !stripeData?.redirect_url) {
     throw new Error('Invalid payment response');

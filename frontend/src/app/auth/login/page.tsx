@@ -6,7 +6,8 @@ import Link from 'next/link';
 import toast from 'react-hot-toast';
 import api from '@/lib/api';
 import { useAuthStore, roleDashboard } from '@/lib/auth';
-import { Eye, EyeOff, Flame } from 'lucide-react';
+import { Eye, EyeOff } from 'lucide-react';
+import logo from '@/components/shared/logo.png';
 
 export default function LoginPage() {
 const [email, setEmail] = useState('');
@@ -94,9 +95,18 @@ backgroundImage:
           borderRadius: 14,
           background: 'var(--brand)',
           marginBottom: 16,
+          overflow: 'hidden',
         }}
       >
-        <Flame size={26} color="#0d1117" strokeWidth={2.5} />
+        <img
+        src={logo}
+        alt="logo"
+        style={{
+          width: 26,
+          height: 26,
+          objectFit: 'contain',
+        }}
+      /> 
       </div>
 
       <h1 style={{ fontSize: 28, marginBottom: 6 }}>
@@ -117,7 +127,7 @@ backgroundImage:
         </h2>
 
         <p style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 24 }}>
-          Owner, manager, staff, or customer — same sign-in
+          Owner Login - Welcome Back to IBird. 
         </p>
 
         <form

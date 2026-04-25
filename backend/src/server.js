@@ -53,9 +53,9 @@ app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
 
 app.use(cors({
   origin: [
-    process.env.FRONTEND_URL || 'https://ibirdos-v2-lfte.vercel.app',
-    'http://localhost:3000',
-    'http://127.0.0.1:3000'
+    process.env.FRONTEND_URL,
+    'https://ibirdos-v2-lfte.vercel.app',
+    'http://localhost:3000'
   ],
   credentials: true,
   methods: ['GET','POST','PUT','DELETE','PATCH','OPTIONS'],

@@ -5,7 +5,7 @@ const { parseInvoiceWithAI, matchIngredientsToDatabase } = require('../services/
 const { logger } = require('../utils/logger');
 
 // ============================================================
-// REDIS CONNECTION (PRODUCTION SAFE)
+// REDIS CONNECTION
 // ============================================================
 
 if (!process.env.REDIS_URL) {
@@ -15,16 +15,11 @@ if (!process.env.REDIS_URL) {
 const connection = new IORedis(process.env.REDIS_URL, {
   maxRetriesPerRequest: null,
   enableReadyCheck: false,
-  tls: {}
+  ...(process.env.REDIS_URL.includes('rediss') && { tls: {} }),
 });
 
-connection.on('connect', () => {
-  console.log('✅ Redis connected');
-});
-
-connection.on('error', (err) => {
-  console.error('❌ Redis error:', err.message);
-});
+connection.on('connect', () => console.log('✅ Redis connected'));
+connection.on('error', (err) => console.error('❌ Redis error:', err.message));
 
 // ============================================================
 // QUEUES
@@ -36,7 +31,7 @@ const alertQueue = new Queue('alert-dispatch', { connection });
 const analyticsQueue = new Queue('analytics-snapshot', { connection });
 
 // ============================================================
-// INVOICE PARSE WORKER
+// INVOICE WORKER (ON-DEMAND)
 // ============================================================
 
 const invoiceWorker = new Worker(
@@ -79,7 +74,7 @@ const invoiceWorker = new Worker(
               item.quantity,
               item.unit,
               item.unit_price,
-              item.total_price
+              item.total_price,
             ]
           );
         }
@@ -89,6 +84,18 @@ const invoiceWorker = new Worker(
           [confidence, invoice_id]
         );
       });
+
+      // 🔥 ALERT LOGIC (event-based, no always-running worker needed)
+      // Example: detect price change
+      for (const item of matchedItems) {
+        if (item.old_price && item.unit_price > item.old_price) {
+          await db.query(
+            `INSERT INTO alerts (company_id, message)
+             VALUES ($1, $2)`,
+            [company_id, `${item.raw_name} price increased`]
+          );
+        }
+      }
 
       logger.info(`Invoice ${invoice_id} parsed`);
     } catch (err) {
@@ -100,39 +107,65 @@ const invoiceWorker = new Worker(
 );
 
 // ============================================================
-// SIMPLE WORKERS
+// SHARED WORKER (runs ONLY when jobs exist)
 // ============================================================
 
-const recipeWorker = new Worker(
-  'recipe-recalculate',
-  async () => {},
+const sharedWorker = new Worker(
+  'shared-jobs',
+  async (job) => {
+    if (job.name === 'recipe-recalculate') {
+      await db.query('SELECT recalculate_recipe_cost($1)', [job.data.recipe_id]);
+      logger.info(`Recipe recalculated: ${job.data.recipe_id}`);
+    }
+
+    if (job.name === 'daily-analytics') {
+      // example placeholder
+      logger.info('Running daily analytics snapshot');
+    }
+
+    if (job.name === 'daily-alert-check') {
+      // example placeholder
+      logger.info('Running daily alert check');
+    }
+  },
   { connection }
 );
 
-const alertWorker = new Worker(
-  'alert-dispatch',
-  async () => {},
-  { connection }
-);
-
-const analyticsWorker = new Worker(
-  'analytics-snapshot',
-  async () => {},
-  { connection }
-);
-
 // ============================================================
-// EXPORT HELPERS
+// JOB HELPERS
 // ============================================================
 
+// run when invoice uploaded
 async function addInvoiceParseJob(data) {
-  return await invoiceQueue.add('parse', data, {
+  return invoiceQueue.add('parse', data, {
     attempts: 3,
-    backoff: { type: 'exponential', delay: 5000 }
+    backoff: { type: 'exponential', delay: 5000 },
   });
+}
+
+// run when recipe created (ON DEMAND)
+async function addRecipeRecalculateJob(recipe_id) {
+  return recipeQueue.add('recipe-recalculate', { recipe_id });
+}
+
+// run ONCE per day (scheduled, not continuous)
+async function scheduleDailyJobs() {
+  await analyticsQueue.add(
+    'daily-analytics',
+    {},
+    { repeat: { cron: '0 2 * * *' } } // 2 AM daily
+  );
+
+  await alertQueue.add(
+    'daily-alert-check',
+    {},
+    { repeat: { cron: '0 9 * * *' } } // 9 AM daily
+  );
 }
 
 module.exports = {
   addInvoiceParseJob,
-  invoiceQueue
+  addRecipeRecalculateJob,
+  scheduleDailyJobs,
+  invoiceQueue,
 };

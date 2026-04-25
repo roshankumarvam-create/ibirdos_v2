@@ -36,7 +36,7 @@ try {
     email: email.trim(),
     password
   });
-  const data = res.data;
+  const data = res;
   console.log('LOGIN RESPONSE:', data);
 
   if (!data?.token || !data?.user) {

@@ -36,7 +36,7 @@ try {
     email: email.trim(),
     password
   });
-  const data = res;
+  const data = res.data;
   console.log('LOGIN RESPONSE:', data);
 
   if (!data?.token || !data?.user) {
@@ -102,8 +102,8 @@ backgroundImage:
         <Image
         src={logo}
         alt="logo"
-        width={26}
-        height={26}
+        width={48}
+        height={48}
         
         
       /> 

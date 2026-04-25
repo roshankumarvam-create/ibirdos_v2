@@ -46,7 +46,7 @@ setLoading(true);
 try {
   // ✅ FIXED: get response properly
   const res = await api.post('/auth/register', form);
-  const data = res;
+  const data = res.data;
 
   console.log('REGISTER RESPONSE:', data);
 
@@ -67,7 +67,7 @@ try {
     plan: form.plan_tier
   });
 
-  const stripeData = stripeRes;
+  const stripeData = stripeRes.data;
 
   if (!stripeData?.url && !stripeData?.redirect_url) {
     throw new Error('Invalid payment response');

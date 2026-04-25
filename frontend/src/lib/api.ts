@@ -33,7 +33,7 @@ return config;
 api.interceptors.response.use(
 (response) => {
 // 🔥 MAIN FIX → always return clean data
-return response.data;
+return response;
 },
 (error) => {
 if (error.response?.status === 401 && typeof window !== 'undefined') {

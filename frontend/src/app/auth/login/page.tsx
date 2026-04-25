@@ -8,6 +8,7 @@ import api from '@/lib/api';
 import { useAuthStore, roleDashboard } from '@/lib/auth';
 import { Eye, EyeOff } from 'lucide-react';
 import logo from '@/components/shared/logo.png';
+import Image from 'next/image';
 
 export default function LoginPage() {
 const [email, setEmail] = useState('');
@@ -98,14 +99,13 @@ backgroundImage:
           overflow: 'hidden',
         }}
       >
-        <img
+        <Image
         src={logo}
         alt="logo"
-        style={{
-          width: 26,
-          height: 26,
-          objectFit: 'contain',
-        }}
+        width={26}
+        height={26}
+        
+        
       /> 
       </div>
 

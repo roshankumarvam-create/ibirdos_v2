@@ -4,12 +4,12 @@ const { logger } = require('../utils/logger');
 
 const s3 = new S3Client({
   region: process.env.S3_REGION || 'auto',
-  endpoint: process.env.S3_ENDPOINT, // For Cloudflare R2: https://<account>.r2.cloudflarestorage.com
+  endpoint: process.env.S3_ENDPOINT,
   credentials: {
     accessKeyId: process.env.S3_ACCESS_KEY,
-    secretAccessKey: process.env.S3_SECRET_KEY
-  }
-  forcePathStyle: true
+    secretAccessKey: process.env.S3_SECRET_KEY,
+  },
+  forcePathStyle: true,
 });
 
 const BUCKET = process.env.S3_BUCKET || 'ibirdos-files';

@@ -6,7 +6,7 @@ const router = express.Router();
 
 router.use(authenticate);
 
-// ✅ define missing things here
+// roles
 const requireStaff = requireRole(['owner', 'manager', 'staff']);
 const CAN_SEE_FINANCIALS = new Set(['owner', 'manager']);
 
@@ -18,7 +18,7 @@ router.get('/', async (req, res) => {
     const { status, limit = 50 } = req.query;
 
     let query = `SELECT * FROM orders WHERE company_id=$1`;
-    const params = [req.user.company_id];
+    const params = [req.companyId]; // ✅ FIXED
 
     if (status) {
       params.push(status);
@@ -43,7 +43,7 @@ router.get('/:id', async (req, res) => {
   try {
     const order = await db.oneOrNone(
       'SELECT * FROM orders WHERE id=$1 AND company_id=$2',
-      [req.params.id, req.user.company_id]
+      [req.params.id, req.companyId] // ✅ FIXED
     );
 
     if (!order) return res.status(404).json({ error: 'Order not found' });
@@ -64,7 +64,7 @@ router.post('/', async (req, res) => {
     const order = await db.one(
       `INSERT INTO orders (company_id, total, status)
        VALUES ($1,$2,'pending') RETURNING *`,
-      [req.user.company_id, total]
+      [req.companyId, total] // ✅ FIXED
     );
 
     res.status(201).json(order);
@@ -82,7 +82,7 @@ router.put('/:id/status', requireStaff, async (req, res) => {
 
     const order = await db.oneOrNone(
       'UPDATE orders SET status=$1 WHERE id=$2 AND company_id=$3 RETURNING *',
-      [status, req.params.id, req.user.company_id]
+      [status, req.params.id, req.companyId] // ✅ FIXED
     );
 
     if (!order) return res.status(404).json({ error: 'Order not found' });

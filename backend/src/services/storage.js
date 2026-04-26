@@ -9,12 +9,19 @@ const s3 = new S3Client({
     accessKeyId: process.env.S3_ACCESS_KEY,
     secretAccessKey: process.env.S3_SECRET_KEY
   }
+  forcePathStyle: true // 
 });
 
 const BUCKET = process.env.S3_BUCKET || 'ibirdos-files';
 
 async function uploadToS3(buffer, key, contentType) {
   try {
+    console.log("📦 Uploading to S3:", {
+      bucket: BUCKET,
+      key,
+      contentType
+    });
+
     await s3.send(new PutObjectCommand({
       Bucket: BUCKET,
       Key: key,
@@ -22,12 +29,21 @@ async function uploadToS3(buffer, key, contentType) {
       ContentType: contentType
     }));
 
-    // Return public URL or CDN URL
     const cdnBase = process.env.S3_CDN_URL || `https://${BUCKET}.s3.amazonaws.com`;
-    return `${cdnBase}/${key}`;
+    const finalUrl = `${cdnBase}/${key}`;
+
+    console.log("✅ Uploaded successfully:", finalUrl);
+
+    return finalUrl;
+
   } catch (err) {
+    console.error("❌ S3 ERROR FULL:", err);
+    console.error("❌ MESSAGE:", err.message);
+    console.error("❌ STACK:", err.stack);
+
     logger.error('S3 upload failed', err);
-    throw new Error('File upload failed');
+
+    throw err; // 👈 DO NOT hide error
   }
 }
 

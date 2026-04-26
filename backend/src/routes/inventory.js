@@ -29,7 +29,7 @@ router.put('/:ingredientId', requireManager, async (req, res) => {
   const inv = await db.one(
     `INSERT INTO inventory (company_id, location_id, ingredient_id, quantity_on_hand, reorder_threshold)
      VALUES ($1,$2,$3,$4,$5)
-     ON CONFLICT (location_id, ingredient_id)
+     ON CONFLICT (company_id, location_id, ingredient_id)  -- 🔥 FIXED
      DO UPDATE SET
        quantity_on_hand=COALESCE($4, inventory.quantity_on_hand),
        reorder_threshold=COALESCE($5, inventory.reorder_threshold),

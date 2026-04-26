@@ -15,19 +15,25 @@ const authenticate = async (req, res, next) => {
     const token = authHeader.split(' ')[1];
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
+    // 🔥 FIX: use decoded.id (NOT userId)
     const user = await db.oneOrNone(
       'SELECT * FROM users WHERE id=$1',
-      [decoded.userId]
+      [decoded.id]
     );
 
     if (!user) {
       return res.status(401).json({ error: 'User not found' });
     }
 
+    // ✅ Attach full user
     req.user = user;
 
+    // 🔥 VERY IMPORTANT (multi-tenant)
+    req.companyId = user.company_id;
+
     next();
-  } catch {
+  } catch (err) {
+    console.error("AUTH ERROR:", err);
     return res.status(401).json({ error: 'Unauthorized' });
   }
 };
@@ -47,7 +53,6 @@ const requireRole = (roles = []) => {
   };
 };
 
-// ✅ DEFINE ALL ROLES PROPERLY
 const requireOwner = requireRole(['owner']);
 const requireManager = requireRole(['owner', 'manager']);
 const requireStaff = requireRole(['owner', 'manager', 'staff']);

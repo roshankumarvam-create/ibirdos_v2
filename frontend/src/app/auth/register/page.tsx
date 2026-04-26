@@ -7,7 +7,6 @@ import toast from 'react-hot-toast';
 import api from '@/lib/api';
 import { useAuthStore } from '@/lib/auth';
 import Image from 'next/image';
-import logo from '@/assets/logo.png'; // 👈 your logo
 
 const DEV_BYPASS = process.env.NODE_ENV !== 'production';
 
@@ -44,7 +43,12 @@ export default function RegisterPage() {
     setLoading(true);
 
     try {
-      const res = await api.post('/auth/register', form);
+      // ✅ ONLY CHANGE: email.trim()
+      const res = await api.post('/auth/register', {
+        ...form,
+        email: form.email.trim()
+      });
+
       const data = res.data;
 
       console.log('REGISTER RESPONSE:', data);
@@ -102,7 +106,7 @@ export default function RegisterPage() {
     }}>
       <div style={{ width: '100%', maxWidth: 460 }}>
 
-        {/* ✅ UPDATED LOGO BLOCK ONLY */}
+        {/* LOGO */}
         <div style={{ textAlign: 'center', marginBottom: 36 }}>
           <div
             style={{
@@ -112,17 +116,17 @@ export default function RegisterPage() {
               width: 60,
               height: 60,
               borderRadius: 14,
-              background: '#ffffff', // 👈 white background
+              background: '#ffffff',
               marginBottom: 14,
               overflow: 'hidden',
               border: '1px solid #e5e7eb'
             }}
           >
             <Image
-              src={logo}
+              src="/logo.png"
               alt="iBirdOS"
-              width={48}
-              height={48}
+              width={52}
+              height={52}
               style={{ objectFit: 'contain' }}
             />
           </div>
@@ -136,7 +140,7 @@ export default function RegisterPage() {
           </p>
         </div>
 
-        {/* FORM CARD */}
+        {/* FORM */}
         <div className="card">
           <div className="card-body">
 
